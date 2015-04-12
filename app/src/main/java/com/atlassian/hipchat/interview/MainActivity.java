@@ -34,6 +34,7 @@ public class MainActivity extends Activity implements InputParser.ParserCallback
         // getText won't be null
         final String inputString = mInputTextView.getText().toString();
 
+        mJasonTextView.setText("fetching...");
         new AsyncTask<Void, Void, Void>()
         {
             @Override

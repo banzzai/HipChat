@@ -1,5 +1,7 @@
 package com.atlassian.hipchat.interview.utils;
 
+import android.util.Log;
+
 import com.atlassian.hipchat.interview.model.UrlDetails;
 
 import java.util.ArrayList;
@@ -27,6 +29,14 @@ public class InputParser implements UrlHelper.UrlFetcherCallback
                     + "[\\p{Alnum}.,%_=?&#\\-+()\\[\\]\\*$~@!:/{};']*)",
             Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL);
 
+    private static final Pattern emotePattern = Pattern.compile(
+            "(\\([a-zA-Z_]*\\))",
+            Pattern.MULTILINE | Pattern.DOTALL);
+
+    private static final Pattern mentionPattern = Pattern.compile(
+            "(@[a-zA-Z_]*)",
+            Pattern.MULTILINE | Pattern.DOTALL);
+
     private static final String FTP_URL_DESCRIPTION = "Ftp url";
 
     // Will be set to true if all mentions have been parsed from the input.
@@ -38,7 +48,10 @@ public class InputParser implements UrlHelper.UrlFetcherCallback
     private ParserCallback mParseCallback;
 
     // All url details.
-    ArrayList<UrlDetails> mUrls = new ArrayList<UrlDetails>();
+    ArrayList<UrlDetails> mUrls;
+
+    ArrayList<String> mMentions;
+    ArrayList<String> mEmotes;
 
     public static InputParser getInstance()
     {
@@ -53,24 +66,53 @@ public class InputParser implements UrlHelper.UrlFetcherCallback
     public void parse(final String input, final ParserCallback callback)
     {
         mParseCallback = callback;
+        init();
+
         extractMentions(input);
         extractEmotes(input);
         extractUrls(input);
     }
 
+    private void init()
+    {
+        mentionsParsed = false;
+        emotesParsed = false;
+        urlDetailsFecthed = false;
+        mAllUrlProcessed = false;
+
+        mMentions = new ArrayList<String>();
+        mEmotes = new ArrayList<String>();
+        mUrls = new ArrayList<UrlDetails>();
+    }
+
     private void extractMentions(final String input)
     {
+        Matcher matcher = mentionPattern.matcher(input);
+        while (matcher.find())
+        {
+            mMentions.add(input.substring(matcher.start(1)+1, matcher.end()));
+        }
+
         mentionsParsed = true;
+        checkAndReturn();
     }
 
     private void extractEmotes(final String input)
     {
+        Matcher matcher = emotePattern.matcher(input);
+        while (matcher.find())
+        {
+            mEmotes.add(input.substring(matcher.start(1)+1, matcher.end()-1));
+        }
+
         emotesParsed = true;
+        checkAndReturn();
     }
 
     private void extractUrls(final String input)
     {
         Matcher matcher = urlPattern.matcher(input);
+
         while (matcher.find())
         {
             final String url = input.substring(matcher.start(1), matcher.end());
@@ -87,6 +129,7 @@ public class InputParser implements UrlHelper.UrlFetcherCallback
         }
 
         mAllUrlProcessed = true;
+        checkAndReturn();
     }
 
     private void fetchTitle(final String url)
@@ -108,15 +151,16 @@ public class InputParser implements UrlHelper.UrlFetcherCallback
             mUrlFetchCount--;
         }
 
-        if (mUrlFetchCount == 0 && mAllUrlProcessed)
-        {
-            urlDetailsFecthed = true;
-            checkAndReturn();
-        }
+        checkAndReturn();
     }
 
     private void checkAndReturn()
     {
+        if (mUrlFetchCount == 0 && mAllUrlProcessed)
+        {
+            urlDetailsFecthed = true;
+        }
+
         if (mentionsParsed && emotesParsed && urlDetailsFecthed)
         {
             mParseCallback.onParsedCompleted(generateJsonResult());
@@ -125,7 +169,23 @@ public class InputParser implements UrlHelper.UrlFetcherCallback
 
     private String generateJsonResult()
     {
-        return "";
+        String result = "";
+
+        for(String mention: mMentions)
+        {
+            result += "\n@"+mention;
+        }
+
+        for(String emote: mEmotes)
+        {
+            result += "\n("+emote+")";
+        }
+
+        for(UrlDetails urlDetail: mUrls)
+        {
+            result += "\nTitle:"+urlDetail.getTitle();
+        }
+        return result;
     }
 
     public interface ParserCallback
