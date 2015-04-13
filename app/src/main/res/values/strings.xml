@@ -1,7 +1,8 @@
 <resources>
     <string name="app_name">HipChatInterview</string>
 
-    <string name="explanation">Type some text and press send, the json version will show up here:</string>
+    <string name="explanation">Type some text and press send, or press auto-fill.</string>
+    <string name="autofill_button">Auto-fill</string>
     <string name="send_button">Send</string>
     <string name="app_title">HipChatInterview</string>
 </resources>

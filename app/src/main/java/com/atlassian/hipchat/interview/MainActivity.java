@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
+import android.view.Window;
 import android.widget.EditText;
 import android.widget.TextView;
 
@@ -18,10 +19,29 @@ public class MainActivity extends Activity implements InputParser.ParserCallback
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
+        this.requestWindowFeature(Window.FEATURE_NO_TITLE);
+
         setContentView(R.layout.activity_main);
 
         mJasonTextView = (TextView) findViewById(R.id.json_string);
         mInputTextView = (EditText) findViewById(R.id.text_entry);
+    }
+
+    /**
+     * Sending a pre-defined string for parsing
+     *
+     * @param view Button which onclick triggered a call to this function.
+     */
+    public void autoFill(View view)
+    {
+        final String inputString = "hey @Greg (hello)! \n" +
+                "I saw @Ben today on www.facebook.com he told me about your new app (congrats)" +
+                "I want to show you some code, check it out and tell me or @John " +
+                "ftp://www.startup.com " +
+                "Also I made sure our project get visibility on www.gougle.com (thumbs)";
+
+        mInputTextView.setText(inputString);
+        analyseInput(inputString);
     }
 
     /**
@@ -32,13 +52,11 @@ public class MainActivity extends Activity implements InputParser.ParserCallback
     public void processJason(View view)
     {
         // getText won't be null
-        //final String inputString = mInputTextView.getText().toString();
-        final String inputString = "hey @Greg (hello)! \n" +
-                "I saw @Ben today on www.facebook.com he told me about your new app (congrats)" +
-                "I want to show you some code, check it out and tell me or @John " +
-                "ftp://www.startup.com " +
-                "Also I made sure our project get visibility on www.gougle.com (thumbs)";
+        analyseInput(mInputTextView.getText().toString());
+    }
 
+    private void analyseInput(final String inputString)
+    {
         mJasonTextView.setText("fetching...");
         new AsyncTask<Void, Void, Void>()
         {

@@ -25,6 +25,7 @@ import java.util.HashMap;
  */
 public class JsonParser
 {
+    private static final String TAG = JsonParser.class.getSimpleName();
     private static final String JSON_KEY_MENTIONS = "mentions";
     private static final String JSON_KEY_EMOTES = "emoticons";
     private static final String JSON_KEY_LINKS = "links";
@@ -33,7 +34,7 @@ public class JsonParser
                                        ArrayList<UrlDetails> mUrls)
     {
         String jsonString = "";
-        Log.e("LALA", "Parsing Json...");
+        Log.d(TAG, "Parsing Json...");
         // Wouldn't need to use pretty formatting if it wasn't an exercise.
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
@@ -43,7 +44,7 @@ public class JsonParser
         map.put(JSON_KEY_LINKS, mUrls);
 
         jsonString = gson.toJson(map);
-        Log.e("LALA", "Json parsed");
+        Log.d(TAG, "Json parsed");
         return jsonString;
     }
 }
