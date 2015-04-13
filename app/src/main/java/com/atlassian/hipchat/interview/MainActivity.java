@@ -3,6 +3,7 @@ package com.atlassian.hipchat.interview;
 import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.method.ScrollingMovementMethod;
 import android.view.View;
 import android.view.Window;
 import android.widget.EditText;
@@ -25,6 +26,8 @@ public class MainActivity extends Activity implements InputParser.ParserCallback
 
         mJasonTextView = (TextView) findViewById(R.id.json_string);
         mInputTextView = (EditText) findViewById(R.id.text_entry);
+
+        mJasonTextView.setMovementMethod(new ScrollingMovementMethod());
     }
 
     /**
