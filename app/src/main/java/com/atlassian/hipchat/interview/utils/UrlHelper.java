@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.atlassian.hipchat.interview.model.UrlDetails;
 
+import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
@@ -29,7 +30,15 @@ public class UrlHelper
             {
                 url = "http://" + url;
             }
-            doc = Jsoup.connect(url).timeout(CONNECTION_TIMEOUT_MS).get();
+            Log.e("LALA", "connect to " + url);
+
+            Connection connection = Jsoup.connect(url)
+                    .userAgent("Mozilla/5.0 (Windows; U; WindowsNT 5.1; en-US; rv1.8.1.6) Gecko/20070725 Firefox/2.0.0.6")
+                    .referrer("http://www.google.com")
+                    .timeout(CONNECTION_TIMEOUT_MS);
+            Log.e("LALA", "connected to " + url);
+            doc = connection.get();
+            Log.e("LALA", "Document found for " + url);
             urlTitle = doc.title();
         }
         catch (final Exception e)

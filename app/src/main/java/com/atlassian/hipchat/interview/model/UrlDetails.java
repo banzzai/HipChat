@@ -1,9 +1,11 @@
 package com.atlassian.hipchat.interview.model;
 
+import com.google.gson.annotations.SerializedName;
+
 public class UrlDetails
 {
-    private String mUrl;
-    private String mTitle;
+    @SerializedName("title") private String mTitle;
+    @SerializedName("url") private String mUrl;
 
     public UrlDetails(String mUrl, String mTitle)
     {

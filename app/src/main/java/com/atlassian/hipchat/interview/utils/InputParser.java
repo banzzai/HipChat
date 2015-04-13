@@ -63,7 +63,7 @@ public class InputParser implements UrlHelper.UrlFetcherCallback
         return mInstance;
     }
 
-    public void parse(final String input, final ParserCallback callback)
+    public void extractDetails(final String input, final ParserCallback callback)
     {
         mParseCallback = callback;
         init();
@@ -163,29 +163,8 @@ public class InputParser implements UrlHelper.UrlFetcherCallback
 
         if (mentionsParsed && emotesParsed && urlDetailsFecthed)
         {
-            mParseCallback.onParsedCompleted(generateJsonResult());
+            mParseCallback.onParsedCompleted(JsonParser.parseIntoJson(mMentions, mEmotes, mUrls));
         }
-    }
-
-    private String generateJsonResult()
-    {
-        String result = "";
-
-        for(String mention: mMentions)
-        {
-            result += "\n@"+mention;
-        }
-
-        for(String emote: mEmotes)
-        {
-            result += "\n("+emote+")";
-        }
-
-        for(UrlDetails urlDetail: mUrls)
-        {
-            result += "\nTitle:"+urlDetail.getTitle();
-        }
-        return result;
     }
 
     public interface ParserCallback
