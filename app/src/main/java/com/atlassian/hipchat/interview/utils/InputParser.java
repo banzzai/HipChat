@@ -1,25 +1,26 @@
 package com.atlassian.hipchat.interview.utils;
 
-import android.util.Log;
+import android.os.AsyncTask;
 
 import com.atlassian.hipchat.interview.model.UrlDetails;
 
 import java.util.ArrayList;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
  * Parse input string into json.
  */
-public class InputParser implements UrlHelper.UrlFetcherCallback
+public class InputParser
 {
-    private static InputParser mInstance;
+    // Keeps track of the number of Url we have fetched details about asynchronously.
+    private int mUrlProcessed = 0;
+    private int mTotalUrls = 0;
 
-    // Keeps track of the number of Url we are fetching details about asynchronously.
-    private int mUrlFetchCount = 0;
-
-    // This will be set to true when we have started fetching details for all urls.
-    private boolean mAllUrlProcessed = false;
+    private boolean mAllUrlsStarted = false;
 
     // Pattern for recognizing a URL, based off RFC 3986
     // see http://stackoverflow.com/questions/5713558/detect-and-extract-url-from-a-string
@@ -39,86 +40,60 @@ public class InputParser implements UrlHelper.UrlFetcherCallback
 
     private static final String FTP_URL_DESCRIPTION = "Ftp url";
 
-    // Will be set to true if all mentions have been parsed from the input.
-    // This helps doing all parsing asynchronously.
-    private boolean mentionsParsed = false;
-    private boolean emotesParsed = false;
-    private boolean urlDetailsFecthed = false;
-
     private ParserCallback mParseCallback;
 
-    // All url details.
-    ArrayList<UrlDetails> mUrls;
+    final private ThreadPoolExecutor mThreadPool = new ThreadPoolExecutor(0, 10, 5l, TimeUnit.SECONDS,
+            new LinkedBlockingDeque<Runnable>());
 
-    ArrayList<String> mMentions;
-    ArrayList<String> mEmotes;
-
-    public static InputParser getInstance()
+    public interface ParserCallback
     {
-        if (mInstance == null)
-        {
-            mInstance = new InputParser();
-        }
-
-        return mInstance;
+        public void onParsingComplete(final String jsonString);
     }
+
+    // All url details.
+    ArrayList<UrlDetails> mUrls = new ArrayList<UrlDetails>();
+    ArrayList<String> mMentions = new ArrayList<String>();
+    ArrayList<String> mEmotes = new ArrayList<String>();
 
     public void extractDetails(final String input, final ParserCallback callback)
     {
         mParseCallback = callback;
-        init();
 
         extractMentions(input);
         extractEmotes(input);
         extractUrls(input);
     }
 
-    private void init()
-    {
-        mentionsParsed = false;
-        emotesParsed = false;
-        urlDetailsFecthed = false;
-        mAllUrlProcessed = false;
-
-        mMentions = new ArrayList<String>();
-        mEmotes = new ArrayList<String>();
-        mUrls = new ArrayList<UrlDetails>();
-    }
-
     private void extractMentions(final String input)
     {
-        Matcher matcher = mentionPattern.matcher(input);
+        final Matcher matcher = mentionPattern.matcher(input);
         while (matcher.find())
         {
             mMentions.add(input.substring(matcher.start(1)+1, matcher.end()));
         }
-
-        mentionsParsed = true;
-        checkAndReturn();
     }
 
     private void extractEmotes(final String input)
     {
-        Matcher matcher = emotePattern.matcher(input);
+        final Matcher matcher = emotePattern.matcher(input);
         while (matcher.find())
         {
             mEmotes.add(input.substring(matcher.start(1)+1, matcher.end()-1));
         }
-
-        emotesParsed = true;
-        checkAndReturn();
     }
 
     private void extractUrls(final String input)
     {
-        Matcher matcher = urlPattern.matcher(input);
+        final Matcher matcher = urlPattern.matcher(input);
 
         while (matcher.find())
         {
+            mTotalUrls++;
             final String url = input.substring(matcher.start(1), matcher.end());
 
             if (url.contains("ftp://"))
             {
+                mUrlProcessed++;
                 // We won't be trying to get a title for this url
                 mUrls.add(new UrlDetails(url, FTP_URL_DESCRIPTION));
             }
@@ -128,47 +103,35 @@ public class InputParser implements UrlHelper.UrlFetcherCallback
             }
         }
 
-        mAllUrlProcessed = true;
+        mAllUrlsStarted = true;
         checkAndReturn();
     }
 
     private void fetchTitle(final String url)
     {
-        synchronized(this)
+        new AsyncTask<String, Void, UrlDetails>()
         {
-            mUrlFetchCount++;
-        }
-        UrlHelper.fetchTitle(url, this);
-    }
+            @Override
+            protected UrlDetails doInBackground(final String... url)
+            {
+                return UrlHelper.fetchTitle(url[0]);
+            }
 
-    @Override
-    public void onUrlDetailsFetched(final UrlDetails details)
-    {
-        mUrls.add(details);
-
-        synchronized(this)
-        {
-            mUrlFetchCount--;
-        }
-
-        checkAndReturn();
+            @Override
+            protected void onPostExecute(final UrlDetails details)
+            {
+                mUrls.add(details);
+                mUrlProcessed++;
+                checkAndReturn();
+            }
+        }.executeOnExecutor(mThreadPool, url);
     }
 
     private void checkAndReturn()
     {
-        if (mUrlFetchCount == 0 && mAllUrlProcessed)
+        if (mUrlProcessed == mTotalUrls && mAllUrlsStarted)
         {
-            urlDetailsFecthed = true;
+            mParseCallback.onParsingComplete(JsonSerializer.parseIntoJson(mMentions, mEmotes, mUrls));
         }
-
-        if (mentionsParsed && emotesParsed && urlDetailsFecthed)
-        {
-            mParseCallback.onParsedCompleted(JsonParser.parseIntoJson(mMentions, mEmotes, mUrls));
-        }
-    }
-
-    public interface ParserCallback
-    {
-        public void onParsedCompleted(final String jsonString);
     }
 }

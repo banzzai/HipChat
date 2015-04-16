@@ -15,7 +15,7 @@ import org.jsoup.nodes.Document;
  * make sure it is the right solution, as I have noticed very long times on the emulator and JUnit.
  * Both could be environmental issues though, so I don't rule out JSoup is just fine as well.
  * It could also still be some bug or mistake in the way I am using it... Some more time should be
- * spent analysing this solution and alternatives to retrieve the document's title.
+ * spent analazing this solution and alternatives to retrieve the document's title.
  *
  */
 public class UrlHelper
@@ -26,9 +26,8 @@ public class UrlHelper
     public static final String USER_AGENT = "Mozilla/5.0 (Windows; U; WindowsNT 5.1; en-US; rv1.8.1.6) Gecko/20070725 Firefox/2.0.0.6";
     public static final String REFERRER = "http://www.google.com";
 
-    public static void fetchTitle(String url, final UrlFetcherCallback callback)
+    public static UrlDetails fetchTitle(String url)
     {
-        Document doc;
         String urlTitle = UNKNOWN_TITLE;
 
         try
@@ -42,7 +41,7 @@ public class UrlHelper
             // Forcing user agent to act like a computer browser, as I have noticed many websites
             // would give out a redirect page instead otherwise. One could argue we might want the
             // mobile version of the page, but I mostly disagree especially because of the redirect.
-            Connection connection = Jsoup.connect(url)
+            final Connection connection = Jsoup.connect(url)
                     .userAgent(USER_AGENT)
                     .referrer(REFERRER)
                     .timeout(CONNECTION_TIMEOUT_MS);
@@ -50,7 +49,7 @@ public class UrlHelper
             // Separating connect from get because it was being extremely slow in JUnit...
             // Definitely something to investigate on before shipping with JSoup
             Log.d(TAG, "connected to " + url);
-            doc = connection.get();
+            final Document doc = connection.get();
 
             Log.d(TAG, "Document found for " + url);
             urlTitle = doc.title();
@@ -60,11 +59,6 @@ public class UrlHelper
             Log.e(TAG, "Could not connect to " + url, e);
         }
 
-        callback.onUrlDetailsFetched(new UrlDetails(url, urlTitle));
-    }
-
-    public interface UrlFetcherCallback
-    {
-        public void onUrlDetailsFetched(final UrlDetails urlDetails);
+        return new UrlDetails(url, urlTitle);
     }
 }

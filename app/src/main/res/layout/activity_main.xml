@@ -46,7 +46,7 @@
         android:layout_height="wrap_content"
         android:text="@string/send_button"
         android:id="@+id/send_button"
-        android:onClick="processJason"
+        android:onClick="processJson"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true" />

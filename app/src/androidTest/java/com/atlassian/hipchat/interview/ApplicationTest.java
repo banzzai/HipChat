@@ -78,7 +78,7 @@ public class ApplicationTest extends ApplicationTestCase<Application> implements
     }
 
     @Override
-    public void onParsedCompleted(String jsonString) {
+    public void onParsingComplete(String jsonString) {
         //assertEquals((mCurrentTest == 1?TEST_RESULT_1:TEST_RESULT_2).trim(), jsonString.trim());
         assertEquals(mCurrentTest == 1 ? TEST_RESULT_1 : TEST_RESULT_2, jsonString);
     }
