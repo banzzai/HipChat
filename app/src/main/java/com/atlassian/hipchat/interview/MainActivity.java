@@ -27,7 +27,7 @@ public class MainActivity extends Activity implements InputParser.ParserCallback
         mJsonTextView = (TextView) findViewById(R.id.json_string);
         mInputTextView = (EditText) findViewById(R.id.text_entry);
 
-        mJasonTextView.setMovementMethod(new ScrollingMovementMethod());
+        mJsonTextView.setMovementMethod(new ScrollingMovementMethod());
     }
 
     /**
