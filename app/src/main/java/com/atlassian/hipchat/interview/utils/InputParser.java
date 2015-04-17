@@ -16,12 +16,6 @@ import java.util.regex.Pattern;
  */
 public class InputParser
 {
-    // Keeps track of the number of Url we have fetched details about asynchronously.
-    private int mUrlProcessed = 0;
-    private int mTotalUrls = 0;
-
-    private boolean mAllUrlsStarted = false;
-
     // Pattern for recognizing a URL, based off RFC 3986
     // see http://stackoverflow.com/questions/5713558/detect-and-extract-url-from-a-string
     private static final Pattern urlPattern = Pattern.compile(
@@ -40,21 +34,34 @@ public class InputParser
 
     private static final String FTP_URL_DESCRIPTION = "Ftp url";
 
-    private ParserCallback mParseCallback;
-
     final private ThreadPoolExecutor mThreadPool = new ThreadPoolExecutor(0, 10, 5l, TimeUnit.SECONDS,
             new LinkedBlockingDeque<Runnable>());
 
-    public interface ParserCallback
-    {
-        public void onParsingComplete(final String jsonString);
-    }
+    private ParserCallback mParseCallback;
 
     // All url details.
     ArrayList<UrlDetails> mUrls = new ArrayList<UrlDetails>();
     ArrayList<String> mMentions = new ArrayList<String>();
     ArrayList<String> mEmotes = new ArrayList<String>();
 
+    // Keeps track of the number of Url we have fetched details about asynchronously.
+    private int mUrlProcessed = 0;
+    private int mTotalUrls = 0;
+    private boolean mAllUrlsStarted = false;
+
+    /**
+     * Callback that will receive the parsed json when ready
+     */
+    public interface ParserCallback
+    {
+        public void onParsingComplete(final String jsonString);
+    }
+
+    /**
+     * Main function to extract items from an input string
+     * @param input String input to search through
+     * @param callback callback that will be called when all the input is parsed
+     */
     public void extractDetails(final String input, final ParserCallback callback)
     {
         mParseCallback = callback;
@@ -64,6 +71,10 @@ public class InputParser
         extractUrls(input);
     }
 
+    /**
+     * Pattern matching to find mentions
+     * @param input String input to search through
+     */
     private void extractMentions(final String input)
     {
         final Matcher matcher = mentionPattern.matcher(input);
@@ -73,6 +84,10 @@ public class InputParser
         }
     }
 
+    /**
+     * Pattern matching to find emotes
+     * @param input String input to search through
+     */
     private void extractEmotes(final String input)
     {
         final Matcher matcher = emotePattern.matcher(input);
@@ -82,6 +97,10 @@ public class InputParser
         }
     }
 
+    /**
+     * Pattern matching to find urls
+     * @param input String input to search through
+     */
     private void extractUrls(final String input)
     {
         final Matcher matcher = urlPattern.matcher(input);
@@ -91,6 +110,7 @@ public class InputParser
             mTotalUrls++;
             final String url = input.substring(matcher.start(1), matcher.end());
 
+            // We should be handling even more urls, like deep linking urls, smb://, etc.
             if (url.contains("ftp://"))
             {
                 mUrlProcessed++;
@@ -107,6 +127,10 @@ public class InputParser
         checkAndReturn();
     }
 
+    /**
+     * Connects to the url if possible and fetches its title from the document
+     * @param url
+     */
     private void fetchTitle(final String url)
     {
         new AsyncTask<String, Void, UrlDetails>()

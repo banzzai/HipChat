@@ -23,9 +23,14 @@ public class UrlHelper
     private static final String UNKNOWN_TITLE = "Title Not Found";
     private static final String TAG = UrlHelper.class.getSimpleName();
     private static final int CONNECTION_TIMEOUT_MS = 3000;
-    public static final String USER_AGENT = "Mozilla/5.0 (Windows; U; WindowsNT 5.1; en-US; rv1.8.1.6) Gecko/20070725 Firefox/2.0.0.6";
-    public static final String REFERRER = "http://www.google.com";
+    private static final String USER_AGENT = "Mozilla/5.0 (Windows; U; WindowsNT 5.1; en-US; rv1.8.1.6) Gecko/20070725 Firefox/2.0.0.6";
+    private static final String REFERRER = "http://www.google.com";
 
+    /**
+     * Uses JSoup to connect to a url and retrieve the title
+     * @param url Url to fetch
+     * @return UrlDetails, the url/title pair.
+     */
     public static UrlDetails fetchTitle(String url)
     {
         String urlTitle = UNKNOWN_TITLE;
@@ -46,8 +51,8 @@ public class UrlHelper
                     .referrer(REFERRER)
                     .timeout(CONNECTION_TIMEOUT_MS);
 
-            // Separating connect from get because it was being extremely slow in JUnit...
-            // Definitely something to investigate on before shipping with JSoup
+            // Separating connect from get because it was being extremely slow in JUnit
+            // and the emulator... Definitely something to investigate on before shipping with JSoup
             Log.d(TAG, "connected to " + url);
             final Document doc = connection.get();
 

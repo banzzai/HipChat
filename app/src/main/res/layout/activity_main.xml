@@ -25,13 +25,13 @@
         android:layout_below="@+id/explanation"
         android:layout_above="@+id/text_entry"
         android:id="@+id/json_string"
-        android:scrollbars = "vertical"
+        android:scrollbars="vertical"
         android:maxLines="20" />
 
     <EditText
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:maxHeight="100dp"
+        android:maxHeight="@dimen/text_box_max_height"
         android:inputType="textMultiLine"
         android:ems="10"
         android:id="@+id/text_entry"
@@ -50,5 +50,14 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true" />
+
+    <ImageView
+        android:layout_width="@dimen/logo_width"
+        android:layout_height="@dimen/logo_height"
+        android:src="@drawable/logo"
+        android:id="@+id/imageView"
+        android:layout_alignParentTop="true"
+        android:layout_alignRight="@+id/send_button"
+        android:layout_alignEnd="@+id/send_button" />
 
 </RelativeLayout>

@@ -38,8 +38,8 @@ public class MainActivity extends Activity implements InputParser.ParserCallback
     public void autoFill(final View view)
     {
         final String inputString = "hey @Greg (hello)! \n" +
-                "I saw @Ben today on www.facebook.com he told me about your new app (congrats)" +
-                "I want to show you some code, check it out and tell me or @John " +
+                "I saw @Ben today on www.facebook.com he told me about your new job at HipChat" +
+                "(congrats) I want to show you some code, check it out and tell me or @John " +
                 "ftp://www.startup.com " +
                 "Also I made sure our project get visibility on www.gougle.com (thumbs)";
 
